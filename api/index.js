@@ -294,7 +294,7 @@ const handleSendMessage = async (msg, ws) => {
             const foundClient = conv.participants.find((participant) => {console.log("client", clientObjId);console.log("participant", participant);return participant.userId.equals(clientObjId)});
             if(foundClient){
                 console.log("sending");
-                client.send(JSON.stringify({type: "recieve-message", data: {convId: conv._id.toString(), senderId: ws.userId, text: createdMessage.text}}))
+                client.send(JSON.stringify({type: "recieve-message", data: createdMessage}));
             }
         });
         

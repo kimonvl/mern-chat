@@ -130,6 +130,12 @@ export const WebSocketContextProvider = ({children}) => {
 
     const handleRecieveMessage = (data) =>{
         console.log("message recieved: ", data);
+        const currentSelectedConversation = selectedConversationRef.current;
+        console.log("message recieved slected conv", currentSelectedConversation);
+        if(currentSelectedConversation.convId == data.conversationId){
+            const newSelectedconv = {...currentSelectedConversation, messages: [...currentSelectedConversation.messages, data]};
+            setSelectedConversation(newSelectedconv);
+        }
     }
 
     const handleFullConversation = (data) => {

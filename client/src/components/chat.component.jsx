@@ -4,6 +4,8 @@ import ContactsSection from "./constacts-section.component";
 import { ConversationContext } from "../context/ConversationContext.context";
 import { WebSocketContext } from "../context/WebsocketContext.context";
 import { UserContext } from "../context/UserContext.context";
+import MessageSentBubble from "./message-sent-bubble.component";
+import MessageReceivedBubble from "./message-recieved-bubble.component";
 
 const Chat = () => {
     const {contextUserId} = useContext(UserContext);
@@ -35,16 +37,16 @@ const Chat = () => {
             <ContactsSection></ContactsSection>
             <div className="flex flex-col bg-blue-100 w-3/4 p-2">
                 <div>{selectedConversation.convName}</div>
-                <div className="flex-grow">
+                <div className="flex-grow overflow-y-auto p-2">
                     {
                         selectedConversation.messages && selectedConversation.messages.map((message) => {
-                            return (
-                                <div>
-                                    <span>
-                                        {`${message.text} from ${message._id}`}
-                                    </span>
-                                </div>
-                            );
+                            const sender = selectedConversation.participants.find((participant) => {return participant.userId == message.senderId;});
+                            console.log("message : ", message);
+                            if(message.senderId == contextUserId) {
+                                return (<MessageSentBubble text={message.text} timestamp={message.timestamp}></MessageSentBubble>);
+                            }else{
+                                return (<MessageReceivedBubble sender={sender.username} text={message.text} timestamp={message.timestamp}></MessageReceivedBubble>);
+                            }
                         })
                     }
                 </div>
