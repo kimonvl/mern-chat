@@ -307,7 +307,11 @@ const handleRequestConversation = async (msg, ws) => {
     console.log("request conversation", msg);
     const convObjId = new mongoose.Types.ObjectId(msg.data.convId);
     const messages = await MessageModel.find({conversationId: convObjId});
-    ws.send(JSON.stringify({type: "full-conversation", data: {messages: messages}}));
+    if(messages.length > 0) {
+        ws.send(JSON.stringify({type: "full-conversation", data: {messages: messages}}));
+    }else {
+        ws.send(JSON.stringify({type: "full-conversation", data: {convId: convObjId.toString()}}));
+    }
 }
 
 

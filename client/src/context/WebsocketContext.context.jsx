@@ -141,16 +141,32 @@ export const WebSocketContextProvider = ({children}) => {
     const handleFullConversation = (data) => {
         const currentOnlineConversations = onlineConversationsRef.current;
         //const name = currentOnlineConversations
-        const foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.messages[0].conversationId});
-        const foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.messages[0].conversationId})
-        if(foundOnline){
-            const newSelectedConv = {...foundOnline, messages: data.messages};
-            setSelectedConversation(newSelectedConv);
-        }else if(foundOffline){
-            const newSelectedConv = {...foundOffline, messages: data.messages};
-            setSelectedConversation(newSelectedConv);
+        console.log("full data", data);
+        if(data.hasOwnProperty("messages"))
+        {
+            const foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.messages[0].conversationId});
+            const foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.messages[0].conversationId})
+            if(foundOnline){
+                const newSelectedConv = {...foundOnline, messages: data.messages};
+                setSelectedConversation(newSelectedConv);
+            }else if(foundOffline){
+                const newSelectedConv = {...foundOffline, messages: data.messages};
+                setSelectedConversation(newSelectedConv);
+            }else {
+                console.log("cant find conversation");
+            }
         }else {
-            console.log("cant find conversation");
+            const foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.convId});
+            const foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.convId})
+            if(foundOnline){
+                const newSelectedConv = {...foundOnline, messages: []};
+                setSelectedConversation(newSelectedConv);
+            }else if(foundOffline){
+                const newSelectedConv = {...foundOffline, messages: []};
+                setSelectedConversation(newSelectedConv);
+            }else {
+                console.log("cant find conversation");
+            }
         }
     }
 
