@@ -284,14 +284,15 @@ const handleAddFriend = async (msg, ws) => {
 const handleSendMessage = async (msg, ws) => {
     const convObjId = new mongoose.Types.ObjectId(msg.data.convId);
     const createdMessage = await MessageModel.create({conversationId: convObjId, senderId: new mongoose.Types.ObjectId(ws.userId), text: msg.data.text});
-
+    //const senderObjId = new mongoose.Types.ObjectId(ws.userId);
     if(createdMessage) {
         const conv = await ConversationModel.findOne({_id: convObjId});
         wss.clients.forEach((client) => {
             console.log("client: ", client.userId);
             console.log("participants: ",typeof conv.participants[0]);
             const clientObjId = new mongoose.Types.ObjectId(client.userId);
-            const foundClient = conv.participants.find((participant) => {console.log("client", clientObjId);console.log("participant", participant);return participant.userId.equals(clientObjId)});
+            //sending the message also to the sender due to storing it in react state as it comes from the database. && (!participant.userId.equals(senderObjId))
+            const foundClient = conv.participants.find((participant) => {console.log("client", clientObjId);console.log("participant", participant);return (participant.userId.equals(clientObjId) )});
             if(foundClient){
                 console.log("sending");
                 client.send(JSON.stringify({type: "recieve-message", data: createdMessage}));

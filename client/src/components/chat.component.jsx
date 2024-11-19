@@ -1,6 +1,6 @@
 
 import { useContext, useRef, useState, useEffect } from "react";
-import ContactsSection from "./constacts-section.component";
+import ContactsSection from "./contacts-section.component";
 import { ConversationContext } from "../context/ConversationContext.context";
 import { WebSocketContext } from "../context/WebsocketContext.context";
 import { UserContext } from "../context/UserContext.context";
@@ -41,11 +41,10 @@ const Chat = () => {
                     {
                         selectedConversation.messages && selectedConversation.messages.map((message) => {
                             const sender = selectedConversation.participants.find((participant) => {return participant.userId == message.senderId;});
-                            console.log("message : ", message);
                             if(message.senderId == contextUserId) {
-                                return (<MessageSentBubble text={message.text} timestamp={message.timestamp}></MessageSentBubble>);
+                                return (<MessageSentBubble key={message._id} text={message.text} timestamp={message.timestamp}></MessageSentBubble>);
                             }else{
-                                return (<MessageReceivedBubble sender={sender.username} text={message.text} timestamp={message.timestamp}></MessageReceivedBubble>);
+                                return (<MessageReceivedBubble key={message._id} sender={sender.username} text={message.text} timestamp={message.timestamp}></MessageReceivedBubble>);
                             }
                         })
                     }

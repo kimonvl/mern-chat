@@ -1,4 +1,5 @@
 import { useContext, useState, useRef, useEffect } from "react";
+import {useNavigate} from "react-router-dom"
 import { WebSocketContext } from "../context/WebsocketContext.context";
 import SearchedUser from "./searched-user.component";
 import { UserContext } from "../context/UserContext.context";
@@ -13,11 +14,13 @@ const ContactsSection = () => {
         socketRef.current = socket;
     }, [socket]);
 
-    const {onlineConversations} = useContext(ConversationContext);
+    const {onlineConversations, setSelectedConversation} = useContext(ConversationContext);
     const {contextUserId, setContextUsername, setContextUserId} = useContext(UserContext);
 
     const [searchFieldValue, setSearchFieldValue] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const navigate = useNavigate();
 
     // Ref to the dropdown element to detect clicks outside
     const dropdownRef = useRef(null);
@@ -54,12 +57,14 @@ const ContactsSection = () => {
 
     const logout = async () => {
         await axios.post('logout');
-        setIsLoggedIn(false);
         socketRef.current.close();
-        localStorage.clear();
         setSocket(null);
         setContextUserId(null);
         setContextUsername(null);
+        setSelectedConversation({});
+        localStorage.clear();
+        setIsLoggedIn(false);
+        navigate('/');
     }
 
     return (
