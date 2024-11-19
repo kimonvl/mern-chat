@@ -2,6 +2,7 @@ import axios from 'axios';
 import MainRoutes from './components/main-routes.component.jsx';
 import { UserContextProvider } from './context/UserContext.context.jsx';
 import { WebSocketContextProvider } from './context/WebsocketContext.context.jsx';
+import { ConversationContextProvider } from './context/ConversationContext.context.jsx';
 
 
 
@@ -12,9 +13,11 @@ function App() {
   
   return (
     <UserContextProvider>
-      <WebSocketContextProvider>
-        <MainRoutes></MainRoutes>
-      </WebSocketContextProvider>
+      <ConversationContextProvider>
+        <WebSocketContextProvider>
+          <MainRoutes></MainRoutes>
+        </WebSocketContextProvider>
+      </ConversationContextProvider>
     </UserContextProvider>
   )
 }

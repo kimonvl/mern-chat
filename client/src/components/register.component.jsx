@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useContext, useState } from "react";
 import { UserContext } from "../context/UserContext.context";
+import { WebSocketContext } from "../context/WebsocketContext.context";
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -8,6 +9,7 @@ const Register = () => {
     const [email, setEmail] = useState('');
 
     const {setContextUsername, setContextUserId} = useContext(UserContext);
+    const {setIsLoggedIn} = useContext(WebSocketContext);
 
     const changePasswordHandler = (e) =>{
         setPassword(e.target.value);
@@ -27,6 +29,7 @@ const Register = () => {
         if(data){
             setContextUserId(data.id);
             setContextUsername(username);
+            setIsLoggedIn(true);
         }else {
             alert("Could not create account");
         }

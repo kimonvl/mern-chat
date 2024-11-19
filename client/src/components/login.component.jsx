@@ -2,12 +2,14 @@ import { useContext, useState } from "react";
 import axios from "axios";
 
 import { UserContext } from "../context/UserContext.context";
+import { WebSocketContext } from "../context/WebsocketContext.context";
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const {setContextUserId, setContextUsername} = useContext(UserContext);
+    const {setIsLoggedIn} = useContext(WebSocketContext);
 
     const changeEmailHandle = (ev) => {
         setEmail(ev.target.value);
@@ -20,10 +22,11 @@ const Login = () => {
     const login = async (ev) => {
         ev.preventDefault();
         const {data} = await axios.post('login', {email, password});
-        console.log(data);
+
         if(data){
             setContextUserId(data.id);
             setContextUsername(data.username);
+            setIsLoggedIn(true);
         }else {
             alert("Could not create account");
         }

@@ -15,11 +15,13 @@ export const UserContextProvider = ({children}) => {
     useEffect(() =>{
         const func = async () =>{
             const {data} = await axios.get("/profile");
-            setContextUserId(data.id);
+            setContextUserId(data.userId);
             setContextUsername(data.username);
         }
-
-        func();
+        if(document.cookie.split('; ').some((cookie) => cookie.startsWith('token='))){
+            func();
+        }
+        
     }, [])
 
     const value = {contextUsername, setContextUsername, contextUserId, setContextUserId};
