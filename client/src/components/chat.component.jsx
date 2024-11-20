@@ -9,8 +9,12 @@ import MessageReceivedBubble from "./message-recieved-bubble.component";
 
 const Chat = () => {
     const {contextUserId} = useContext(UserContext);
-    const {selectedConversation} = useContext(ConversationContext);
-    console.log("chat selected conv",selectedConversation);
+    const {selectedConversation, setSelectedConversation} = useContext(ConversationContext);
+    const selectedConversationRef = useRef(selectedConversation);
+    useEffect(() => {
+        selectedConversationRef.current = selectedConversation;
+    }, [selectedConversation]);
+
     const {socket} = useContext(WebSocketContext);
     const socketRef = useRef(socket);
     useEffect(() => {
@@ -32,10 +36,31 @@ const Chat = () => {
         }
     };
 
+    const divRef = useRef(null);
+
+    const handleClickOutside = (event) => {
+        // Check if the clicked element is outside the referenced div
+        const currentSelectedConversation = selectedConversationRef.current;
+        if (divRef.current && !divRef.current.contains(event.target) && currentSelectedConversation.convId) {
+            console.log('Clicked outside the div!');
+            // Add your logic here (e.g., close dropdown, modal, etc.)
+            setSelectedConversation({});
+        }
+    };
+
+    useEffect(() => {
+        // Attach event listener on mount
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            // Cleanup the event listener on unmount
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <div className="flex h-screen">
             <ContactsSection></ContactsSection>
-            <div className="flex flex-col bg-blue-100 w-3/4 p-2">
+            <div ref={divRef} className="flex flex-col bg-blue-100 w-3/4 p-2">
                 <div>{selectedConversation.convName}</div>
                 <div className="flex-grow overflow-y-auto p-2">
                     {
