@@ -140,18 +140,19 @@ export const WebSocketContextProvider = ({children}) => {
 
     const handleFullConversation = (data) => {
         const currentOnlineConversations = onlineConversationsRef.current;
-        //const name = currentOnlineConversations
-        console.log("full data", data);
         if(data.hasOwnProperty("messages"))
         {
-            const foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.messages[0].conversationId});
-            const foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.messages[0].conversationId})
+            let foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.messages[0].conversationId});
+            let foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.messages[0].conversationId})
             if(foundOnline){
                 const newSelectedConv = {...foundOnline, messages: data.messages};
                 setSelectedConversation(newSelectedConv);
+                foundOnline.unreadMessages = 0;
+                setOnlineConversations({...currentOnlineConversations});
             }else if(foundOffline){
                 const newSelectedConv = {...foundOffline, messages: data.messages};
                 setSelectedConversation(newSelectedConv);
+                console.log('itemabout to modify off', foundOffline);
             }else {
                 console.log("cant find conversation");
             }

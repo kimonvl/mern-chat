@@ -12,10 +12,12 @@ const MessageSchema = new mongoose.Schema(
         url: { type: String, required: true }
     }
     ],
-    status: {
-    type: Map, // Key-value pair for read/delivered status by each participant
-    of: { type: String, enum: ["sent", "delivered", "read"], default: "sent" }
-    },
+    status: [
+        {
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+            status: { type: String, enum: ["sent", "delivered", "read"], default: "sent" }
+        }
+    ],
     reactions: [
     {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

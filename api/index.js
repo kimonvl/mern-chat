@@ -200,18 +200,19 @@ const findOnlineFriendsConversations = async (id, clients) => {
 
         // Map online conversations
         if (convosOnline.length > 0) {
-            convosOnlineToReturn = convosOnline.map((convo) => {
-                let result = { convId: convo._id, participants: [] };
+            convosOnlineToReturn = await Promise.all(convosOnline.map(async (convo) => {
+                let result = { convId: convo._id, participants: [], unreadMessages: 0};
                 convo.participants.forEach((participant) => {
                     const participantToAdd = onlineFriends.find(
-                        (friend) => participant.userId.toString() === friend.userId.toString()
+                        (friend) => participant.userId.equals(new mongoose.Types.ObjectId(friend.userId))
                     );
                     if (participantToAdd) {
                         result.participants.push(participantToAdd);
                     }
                 });
+                result.unreadMessages = await addUnreadMessageCountToConvo(foundUser._id, convo._id);
                 return result;
-            });
+            }));
         }
 
         // Map offline conversations
@@ -221,18 +222,19 @@ const findOnlineFriendsConversations = async (id, clients) => {
                 _id: { $in: foundUser.friends } // Are friends
             });
 
-            convosOfflineToReturn = convosOffline.map((convo) => {
-                let result = { convId: convo._id, participants: [] };
+            convosOfflineToReturn = await Promise.all(convosOffline.map(async (convo) => {
+                let result = { convId: convo._id, participants: [] , unreadMessages: 0};
                 convo.participants.forEach((participant) => {
                     const friendToAdd = offlineFriends.find(
-                        (friend) => participant.userId.toString() === friend._id.toString()
+                        (friend) => participant.userId.equals(friend._id)
                     );
                     if (friendToAdd) {
                         result.participants.push({ username: friendToAdd.username, userId: friendToAdd._id });
                     }
                 });
+                result.unreadMessages = await addUnreadMessageCountToConvo(foundUser._id, convo._id);
                 return result;
-            });
+            }));
         }
 
         return { online: convosOnlineToReturn, offline: convosOfflineToReturn };
@@ -241,6 +243,27 @@ const findOnlineFriendsConversations = async (id, clients) => {
         return { online: [], offline: [] };
     }
 };
+
+const addUnreadMessageCountToConvo = async (userObjId, convoObjId) => {
+    const messages = await MessageModel.find({
+        conversationId: convoObjId,
+        status: {
+            $elemMatch: {
+                userId: userObjId,
+                status: { $in: ["sent", "delivered"] }
+            }
+        }
+    });
+    if(messages) {
+        for (var message of messages) {
+            let objToModify = message.status.find((obj) => {return obj.userId.equals(userObjId)});
+            objToModify.status = "delivered";
+            await message.save();
+        }
+        return messages.length;
+    }
+    return 0;
+}
 
 
 const handleSearchUsername = async (msg, ws) => {
@@ -287,18 +310,31 @@ const handleSendMessage = async (msg, ws) => {
     //const senderObjId = new mongoose.Types.ObjectId(ws.userId);
     if(createdMessage) {
         const conv = await ConversationModel.findOne({_id: convObjId});
-        wss.clients.forEach((client) => {
-            console.log("client: ", client.userId);
-            console.log("participants: ",typeof conv.participants[0]);
+        
+        for (const client of wss.clients) {
             const clientObjId = new mongoose.Types.ObjectId(client.userId);
             //sending the message also to the sender due to storing it in react state as it comes from the database. && (!participant.userId.equals(senderObjId))
-            const foundClient = conv.participants.find((participant) => {console.log("client", clientObjId);console.log("participant", participant);return (participant.userId.equals(clientObjId) )});
+            const foundClient = conv.participants.find((participant) => {return (participant.userId.equals(clientObjId) )});
             if(foundClient){
                 console.log("sending");
                 client.send(JSON.stringify({type: "recieve-message", data: createdMessage}));
+                if(client.userId == ws.userId) {
+                    createdMessage.status.push({userId: new mongoose.Types.ObjectId(client.userId), status: "read"});
+                    await createdMessage.save();
+                }else {
+                    createdMessage.status.push({userId: new mongoose.Types.ObjectId(client.userId), status: "delivered"});
+                    await createdMessage.save();
+                }
             }
-        });
-        
+        }
+        //find offline participants
+        for (const participant of conv.participants) {
+            const onlineParticipant = Array.from(wss.clients).find((client) => {return (participant.userId.equals(new mongoose.Types.ObjectId(client.userId)))});
+            if(!onlineParticipant) {
+                createdMessage.status.push({userId: new mongoose.Types.ObjectId(participant.userId), status: "sent"});
+                await createdMessage.save();
+            }
+        }   
     }else {
         console.log("failed to create message");
     }
@@ -312,6 +348,26 @@ const handleRequestConversation = async (msg, ws) => {
         ws.send(JSON.stringify({type: "full-conversation", data: {messages: messages}}));
     }else {
         ws.send(JSON.stringify({type: "full-conversation", data: {convId: convObjId.toString()}}));
+    }
+    await markMessagesAsRead(convObjId, new mongoose.Types.ObjectId(ws.userId));
+}
+
+const markMessagesAsRead = async (convObjId, userObjId) => {
+    const messages = await MessageModel.find({
+        conversationId: convObjId,
+        status: {
+            $elemMatch: {
+                userId: userObjId,
+                status: { $in: ["sent", "delivered"] }
+            }
+        }
+    });
+    if(messages) {
+        for (var message of messages) {
+            let objToModify = message.status.find((obj) => {return obj.userId.equals(userObjId)});
+            objToModify.status = "read";
+            await message.save();
+        }
     }
 }
 
