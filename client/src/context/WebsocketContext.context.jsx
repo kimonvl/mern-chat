@@ -131,10 +131,22 @@ export const WebSocketContextProvider = ({children}) => {
     const handleRecieveMessage = (data) =>{
         console.log("message recieved: ", data);
         const currentSelectedConversation = selectedConversationRef.current;
+        const currentOnlineConversations = onlineConversationsRef.current;
         console.log("message recieved slected conv", currentSelectedConversation);
         if(currentSelectedConversation.convId == data.conversationId){
             const newSelectedconv = {...currentSelectedConversation, messages: [...currentSelectedConversation.messages, data]};
             setSelectedConversation(newSelectedconv);
+            //comunicate to server that the message is read here
+        }else{
+            let foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.conversationId});
+            let foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.conversationId});
+            if(foundOnline) {
+                foundOnline.unreadMessages += 1;
+                setOnlineConversations({...currentOnlineConversations});
+            }else if(foundOffline) {
+                foundOffline.unreadMessages += 1;
+                setOnlineConversations({...currentOnlineConversations});
+            }
         }
     }
 
