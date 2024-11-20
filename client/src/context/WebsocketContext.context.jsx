@@ -17,21 +17,29 @@ export const WebSocketContextProvider = ({children}) => {
     const [isLoggedIn, setIsLoggedIn] = useState(null);
 
     const {setOnlineConversations, onlineConversations, selectedConversation, setSelectedConversation} = useContext(ConversationContext);
+    const {contextUserId} = useContext(UserContext);
+
+    const socketRef = useRef(socket);
+
+    useEffect(() => {
+        // Keep ref updated whenever onlineConversations changes
+        socketRef.current = socket;
+    }, [socket]);
 
      // Ref to keep track of the latest onlineConversations
     const onlineConversationsRef = useRef(onlineConversations);
 
-     useEffect(() => {
+    useEffect(() => {
          // Keep ref updated whenever onlineConversations changes
          onlineConversationsRef.current = onlineConversations;
-     }, [onlineConversations]);
+    }, [onlineConversations]);
 
-     const selectedConversationRef = useRef(selectedConversation);
+    const selectedConversationRef = useRef(selectedConversation);
 
-     useEffect(() => {
+    useEffect(() => {
          // Keep ref updated whenever onlineConversations changes
          selectedConversationRef.current = selectedConversation;
-     }, [selectedConversation]);
+    }, [selectedConversation]);
 
     useEffect(() =>{
         if(document.cookie.split('; ').some((cookie) => cookie.startsWith('token='))) {
@@ -137,6 +145,8 @@ export const WebSocketContextProvider = ({children}) => {
             const newSelectedconv = {...currentSelectedConversation, messages: [...currentSelectedConversation.messages, data]};
             setSelectedConversation(newSelectedconv);
             //comunicate to server that the message is read here
+            const currentSocket = socketRef.current;
+            currentSocket.send(JSON.stringify({type: "message-read", data: {msgId: data._id, readById: contextUserId}}))
         }else{
             let foundOnline = currentOnlineConversations.online.find((conv) => {return conv.convId == data.conversationId});
             let foundOffline = currentOnlineConversations.offline.find((conv) => {return conv.convId == data.conversationId});
@@ -164,7 +174,8 @@ export const WebSocketContextProvider = ({children}) => {
             }else if(foundOffline){
                 const newSelectedConv = {...foundOffline, messages: data.messages};
                 setSelectedConversation(newSelectedConv);
-                console.log('itemabout to modify off', foundOffline);
+                foundOffline.unreadMessages = 0;
+                setOnlineConversations({...currentOnlineConversations});
             }else {
                 console.log("cant find conversation");
             }

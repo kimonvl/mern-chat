@@ -127,6 +127,9 @@ wss.on('connection',  (connection, req) => {
             case 'request-conversation':
                 handleRequestConversation(message, connection);
                 break;
+            case 'message-read':
+                handleMessageRead(message, connection);
+                break;
             default:
                 break;
         }
@@ -369,6 +372,18 @@ const markMessagesAsRead = async (convObjId, userObjId) => {
             await message.save();
         }
     }
+}
+
+const handleMessageRead = async (msg, ws) => {
+    const message = await MessageModel.findOneAndUpdate({
+        _id: new mongoose.Types.ObjectId(msg.data.msgId), 
+        "status.userId": new mongoose.Types.ObjectId(ws.userId)
+    }, {
+        $set: { "status.$.status": "read" }
+    }, {new: true});
+
+    if(!message)
+        throw new Error(`Couldn't update message with id : ${msg.data.msgId}`);
 }
 
 
