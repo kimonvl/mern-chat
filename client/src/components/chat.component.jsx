@@ -1,19 +1,28 @@
-
 import { useContext, useRef, useState, useEffect } from "react";
 import ContactsSection from "./contacts-section.component";
 import { ConversationContext } from "../context/ConversationContext.context";
 import { WebSocketContext } from "../context/WebsocketContext.context";
-import { UserContext } from "../context/UserContext.context";
 import MessageSentBubble from "./message-sent-bubble.component";
 import MessageReceivedBubble from "./message-recieved-bubble.component";
-
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUserId } from "../store/user/user.selectors";
+import { selectSelectedConversation } from "../store/selected-conversation/selected-conversation.selectors";
+import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
 const Chat = () => {
-    const {contextUserId} = useContext(UserContext);
-    const {selectedConversation, setSelectedConversation} = useContext(ConversationContext);
-    const selectedConversationRef = useRef(selectedConversation);
+    const contextUserId = useSelector(selectUserId);
+    const dispatch = useDispatch();
     useEffect(() => {
-        selectedConversationRef.current = selectedConversation;
-    }, [selectedConversation]);
+        const storedSelectedConversation = localStorage.getItem('selected-conversation');
+        if(storedSelectedConversation){
+            const obj = JSON.parse(storedSelectedConversation);
+            // @ts-ignore
+            dispatch(setSelectedConversation(obj));
+        }
+    }, []);
+    
+    const selectedConversation = useSelector(selectSelectedConversation);
+    
 
     const {socket} = useContext(WebSocketContext);
     const socketRef = useRef(socket);
@@ -24,14 +33,14 @@ const Chat = () => {
     const [messageToSend, setMessageToSend] = useState('');
 
     const changeMessageToSendHandler = (ev) => {
-        if(ev.target.value){
-            setMessageToSend(ev.target.value);
-        }
+        setMessageToSend(ev.target.value);
     };
 
     const sendMessage = () => {
+        // @ts-ignore
         if(socketRef.current.readyState == 1 && messageToSend)
         {
+            // @ts-ignore
             socketRef.current.send(JSON.stringify({type: "send-message", data: {convId: selectedConversation.convId, text: messageToSend}}));
         }
     };
@@ -39,12 +48,12 @@ const Chat = () => {
     const divRef = useRef(null);
 
     const handleClickOutside = (event) => {
-        // Check if the clicked element is outside the referenced div
-        const currentSelectedConversation = selectedConversationRef.current;
-        if (divRef.current && !divRef.current.contains(event.target) && currentSelectedConversation.convId) {
+        // @ts-ignore
+        if (divRef.current && !divRef.current.contains(event.target)) {
             console.log('Clicked outside the div!');
             // Add your logic here (e.g., close dropdown, modal, etc.)
-            setSelectedConversation({});
+            // @ts-ignore
+            dispatch(setSelectedConversation({}));
         }
     };
 

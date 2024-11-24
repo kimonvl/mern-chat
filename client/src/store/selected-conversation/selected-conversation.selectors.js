@@ -1,0 +1,1 @@
+export const selectSelectedConversation = (state) => {return state.selectedConversation.selectedConversation;}

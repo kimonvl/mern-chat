@@ -1,0 +1,6 @@
+const USER_ACTION_TYPES = {
+    SET_USERNAME: 'user/SET_USERNAME',
+    SET_USERID: 'user/SET_USERID'
+}
+
+export default USER_ACTION_TYPES;

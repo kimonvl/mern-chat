@@ -2,20 +2,27 @@ import { useContext, useState, useRef, useEffect } from "react";
 import {useNavigate} from "react-router-dom"
 import { WebSocketContext } from "../context/WebsocketContext.context";
 import SearchedUser from "./searched-user.component";
-import { UserContext } from "../context/UserContext.context";
 import Contact from "./contact.component";
 import axios from "axios";
 import { ConversationContext } from "../context/ConversationContext.context";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUserId } from "../store/user/user.selectors";
+import { setUserId, setUsername } from "../store/user/user.actions";
+import React from "react";
+import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
 
 const ContactsSection = () => {
+    // @ts-ignore
     const {socket, usersSearchResult, setSocket, setIsLoggedIn} = useContext(WebSocketContext);
     const socketRef = useRef(socket);
     useEffect(() => {
         socketRef.current = socket;
     }, [socket]);
 
-    const {onlineConversations, setSelectedConversation} = useContext(ConversationContext);
-    const {contextUserId, setContextUsername, setContextUserId} = useContext(UserContext);
+    // @ts-ignore
+    const {onlineConversations} = useContext(ConversationContext);
+    const contextUserId = useSelector(selectUserId);
+    const dispatch = useDispatch();
 
     const [searchFieldValue, setSearchFieldValue] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -28,6 +35,7 @@ const ContactsSection = () => {
     useEffect(() => {
         // Event listener for detecting clicks outside
         const handleClickOutside = (event) => {
+          // @ts-ignore
           if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
             setIsDropdownOpen(false);
           }
@@ -51,17 +59,21 @@ const ContactsSection = () => {
             return;
 
         const msg = {type: "search-username", data: searchFieldValue};
+        // @ts-ignore
         socket.send(JSON.stringify(msg));
         setIsDropdownOpen(true);
     }
 
     const logout = async () => {
         await axios.post('logout');
+        // @ts-ignore
         socketRef.current.close();
+        // @ts-ignore
         setSocket(null);
-        setContextUserId(null);
-        setContextUsername(null);
-        setSelectedConversation({});
+        dispatch(setUsername(null));
+        dispatch(setUserId(null));
+        // @ts-ignore
+        dispatch(setSelectedConversation({}));
         localStorage.clear();
         setIsLoggedIn(false);
         navigate('/');
@@ -90,7 +102,9 @@ const ContactsSection = () => {
                 <div ref={dropdownRef} className="dropdown bg-blue-500 w-[90%] max-w-[300px] h-[200px] flex items-center justify-center text-white text-center mx-auto absolute top-[55px] left-[50%] transform -translate-x-1/2 z-10 overflow-y-auto">
                 {
                     usersSearchResult.map((user) => {
+                    // @ts-ignore
                     if(user.userId !== contextUserId)
+                        // @ts-ignore
                         return (<SearchedUser key={user.userId} user={user} socket={socket}></SearchedUser>);
                     })
                 }
