@@ -4,23 +4,24 @@ import { WebSocketContext } from "../context/WebsocketContext.context";
 import SearchedUser from "./searched-user.component";
 import Contact from "./contact.component";
 import axios from "axios";
-import { ConversationContext } from "../context/ConversationContext.context";
+import { selectOnlineConversations } from "../store/onilne-conversations/online-conversations.selectors";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUserId } from "../store/user/user.selectors";
 import { setUserId, setUsername } from "../store/user/user.actions";
 import React from "react";
 import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
+import { selectSocket } from "../store/websocket/websocket.selectors";
 
 const ContactsSection = () => {
     // @ts-ignore
-    const {socket, usersSearchResult, setSocket, setIsLoggedIn} = useContext(WebSocketContext);
+    const {usersSearchResult, setSocket, setIsLoggedIn} = useContext(WebSocketContext);
+    const socket = useSelector(selectSocket);
     const socketRef = useRef(socket);
     useEffect(() => {
         socketRef.current = socket;
     }, [socket]);
 
-    // @ts-ignore
-    const {onlineConversations} = useContext(ConversationContext);
+    const onlineConversations = useSelector(selectOnlineConversations);
     const contextUserId = useSelector(selectUserId);
     const dispatch = useDispatch();
 

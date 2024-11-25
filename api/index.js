@@ -1,3 +1,4 @@
+// @ts-nocheck
 const express = require('express');
 const mongoose = require("mongoose");
 const dotenv = require('dotenv');
@@ -308,6 +309,7 @@ const handleAddFriend = async (msg, ws) => {
 }
 
 const handleSendMessage = async (msg, ws) => {
+    console.log("send message", msg);
     const convObjId = new mongoose.Types.ObjectId(msg.data.convId);
     const createdMessage = await MessageModel.create({conversationId: convObjId, senderId: new mongoose.Types.ObjectId(ws.userId), text: msg.data.text});
     //const senderObjId = new mongoose.Types.ObjectId(ws.userId);

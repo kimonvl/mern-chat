@@ -1,11 +1,13 @@
 import { useState, useEffect, createContext, useContext, useRef } from "react";
 import _ from 'lodash';
-import { ConversationContext } from "./ConversationContext.context";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUserId } from "../store/user/user.selectors";
 import { selectSelectedConversation } from "../store/selected-conversation/selected-conversation.selectors";
 import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
+import { selectOnlineConversations } from "../store/onilne-conversations/online-conversations.selectors";
+import { setOnlineConversations } from "../store/onilne-conversations/online-conversations.actions";
+import { wsConnect } from "../store/websocket/websocket.actions";
 
 export const WebSocketContext = createContext({
     socket: null,
@@ -28,31 +30,28 @@ export const WebSocketContextProvider = ({children}) => {
         selectedConversationRef.current = selectedConversation;
     }, [selectedConversation]);
     // @ts-ignore
-    const {setOnlineConversations, onlineConversations} = useContext(ConversationContext);
-    const contextUserId = useSelector(selectUserId);
-
-    const socketRef = useRef(socket);
-
-    useEffect(() => {
-        // Keep ref updated whenever onlineConversations changes
-        socketRef.current = socket;
-    }, [socket]);
-
-     // Ref to keep track of the latest onlineConversations
+    /* const onlineConversations = useSelector(selectOnlineConversations);
     const onlineConversationsRef = useRef(onlineConversations);
 
     useEffect(() => {
          // Keep ref updated whenever onlineConversations changes
          onlineConversationsRef.current = onlineConversations;
-    }, [onlineConversations]);
+    }, [onlineConversations]); */
+
+    const contextUserId = useSelector(selectUserId);
+
+    const socketRef = useRef(socket);
+
+    useEffect(() => {
+        socketRef.current = socket;
+    }, [socket]);
+
+     // Ref to keep track of the latest onlineConversations
+    
 
     useEffect(() =>{
         if(document.cookie.split('; ').some((cookie) => cookie.startsWith('token='))) {
-            const soc = new WebSocket('ws://localhost:4040')
-            soc.addEventListener('message', handleMessage);
-            // @ts-ignore
-            setSocket(soc);
-            console.log("socket", soc);
+            dispatch(wsConnect());
         }
     }, [isLoggedIn]);
 
@@ -90,6 +89,7 @@ export const WebSocketContextProvider = ({children}) => {
     }
 
     const handleOnlineUsers = (data) => {
+        //proccessing the data will happen in the selector or middleware
         data.online.forEach((convo) => {
             const name = convo.participants.reduce((accumulator, participant) => {
                 return accumulator ? `${accumulator}, ${participant.username}` : participant.username;
@@ -103,7 +103,7 @@ export const WebSocketContextProvider = ({children}) => {
             convo.convName = name;
         });
         // @ts-ignore
-        setOnlineConversations(data);
+        dispatch(setOnlineConversations(data));
     }
 
     const handleNewConversation = (data) => {
@@ -125,7 +125,7 @@ export const WebSocketContextProvider = ({children}) => {
         const newOnlineConvos = [...currentOnlineConversations.online, ...convosToSwap];
         
         // @ts-ignore
-        setOnlineConversations({online: newOnlineConvos, offline: newOfflineConvos});
+        dispatch(setOnlineConversations({online: newOnlineConvos, offline: newOfflineConvos}));
     }
 
     const handleNotifyDisconnection = (data) => {
@@ -142,7 +142,7 @@ export const WebSocketContextProvider = ({children}) => {
         const newOfflineConvos = [...currentOnlineConversations.offline, ...convosToSwap];
         
         // @ts-ignore
-        setOnlineConversations({online: newOnlineConvos, offline: newOfflineConvos});
+        dispatch(setOnlineConversations({online: newOnlineConvos, offline: newOfflineConvos}));
     }
 
     const handleRecieveMessage = (data) =>{
@@ -164,11 +164,11 @@ export const WebSocketContextProvider = ({children}) => {
             if(foundOnline) {
                 foundOnline.unreadMessages += 1;
                 // @ts-ignore
-                setOnlineConversations({...currentOnlineConversations});
+                dispatch(setOnlineConversations({...currentOnlineConversations}));
             }else if(foundOffline) {
                 foundOffline.unreadMessages += 1;
                 // @ts-ignore
-                setOnlineConversations({...currentOnlineConversations});
+                dispatch(setOnlineConversations({...currentOnlineConversations}));
             }
         }
     }
@@ -185,14 +185,14 @@ export const WebSocketContextProvider = ({children}) => {
                 dispatch(setSelectedConversation(newSelectedConv));
                 foundOnline.unreadMessages = 0;
                 // @ts-ignore
-                setOnlineConversations({...currentOnlineConversations});
+                dispatch(setOnlineConversations({...currentOnlineConversations}));
             }else if(foundOffline){
                 const newSelectedConv = {...foundOffline, messages: data.messages};
                 // @ts-ignore
                 dispatch(setSelectedConversation(newSelectedConv));
                 foundOffline.unreadMessages = 0;
                 // @ts-ignore
-                setOnlineConversations({...currentOnlineConversations});
+                dispatch(setOnlineConversations({...currentOnlineConversations}));
             }else {
                 console.log("cant find conversation");
             }

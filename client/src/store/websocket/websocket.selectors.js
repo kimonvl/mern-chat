@@ -1,0 +1,1 @@
+export const selectSocket = (state) => {return state.websocket.socket;}

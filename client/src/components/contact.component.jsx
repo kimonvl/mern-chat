@@ -1,10 +1,14 @@
 import { useContext, useEffect, useRef } from "react";
 import Avatar from "./avatar.component";
 import { WebSocketContext } from "../context/WebsocketContext.context";
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectSocket } from "../store/websocket/websocket.selectors";
 
 
 const Contact = ({online, conv}) => {
-    const {socket} = useContext(WebSocketContext);
+    const socket = useSelector(selectSocket);
+    console.log("socket in contact", socket);
     const socketRef = useRef(socket);
     useEffect(() => {
         socketRef.current = socket;

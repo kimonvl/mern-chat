@@ -1,6 +1,5 @@
 import { useContext, useRef, useState, useEffect } from "react";
 import ContactsSection from "./contacts-section.component";
-import { ConversationContext } from "../context/ConversationContext.context";
 import { WebSocketContext } from "../context/WebsocketContext.context";
 import MessageSentBubble from "./message-sent-bubble.component";
 import MessageReceivedBubble from "./message-recieved-bubble.component";
@@ -9,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectUserId } from "../store/user/user.selectors";
 import { selectSelectedConversation } from "../store/selected-conversation/selected-conversation.selectors";
 import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
+import { selectSocket } from "../store/websocket/websocket.selectors";
 const Chat = () => {
     const contextUserId = useSelector(selectUserId);
     const dispatch = useDispatch();
@@ -24,7 +24,7 @@ const Chat = () => {
     const selectedConversation = useSelector(selectSelectedConversation);
     
 
-    const {socket} = useContext(WebSocketContext);
+    const socket = useSelector(selectSocket);
     const socketRef = useRef(socket);
     useEffect(() => {
         socketRef.current = socket;
