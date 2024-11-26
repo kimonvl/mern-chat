@@ -90,6 +90,7 @@ const server = app.listen(4040);
 const wss = new ws.WebSocketServer({server});
 console.log("beginning", wss.clients.size);
 wss.on('connection',  (connection, req) => {
+    console.log(`client connected `, wss.clients.size)
     var token = null;
     if(req.headers.cookie)
     {
@@ -273,10 +274,17 @@ const addUnreadMessageCountToConvo = async (userObjId, convoObjId) => {
 const handleSearchUsername = async (msg, ws) => {
     const searchStr = msg.data;
     try {
+        const currentUser = await UserModel.findOne({_id: new mongoose.Types.ObjectId(ws.userId)});
+        const friendIds = currentUser.friends.map((id) => new mongoose.Types.ObjectId(id));
+
         const results = await UserModel.find({
-            username: { $regex: searchStr, $options: 'i' }});
+            username: { $regex: searchStr, $options: 'i' },
+            _id: { $nin: friendIds }
+        });
+        
         var searchResults = [];
         results.forEach((user) => {
+            if(user._id)
             searchResults.push({userId: user._id, username: user.username, email: user.email});
         });
     
@@ -300,7 +308,15 @@ const handleAddFriend = async (msg, ws) => {
                 participants: [{userId: foundUserMe._id, role: "member"}, {userId: foundUserOther._id, role: "member"}],
                 type: "direct",
             });
-            const data = {convId: conv._id, friendId: foundUserOther._id, friendUsername: foundUserOther.username};
+            const participantsWithoutMe = conv.participants.filter((participant) => !(participant.userId.equals(foundUserMe._id)));
+            const participantsWithUsernames = await Promise.all(participantsWithoutMe.map(async (participant) => {
+                const foundFriend = await UserModel.findOne({_id: participant.userId});
+                if(foundFriend){
+                    return {username: foundFriend.username, userId: foundFriend._id};
+                }
+            }));
+            console.log("participants with usernames ", participantsWithUsernames);
+            const data = {convId: conv._id, participants: participantsWithUsernames};
             ws.send(JSON.stringify({type: "new-conversation", data: data}));
         }
     } catch (error) {

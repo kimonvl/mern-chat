@@ -1,6 +1,5 @@
-import { useContext, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Avatar from "./avatar.component";
-import { WebSocketContext } from "../context/WebsocketContext.context";
 import React from "react";
 import { useSelector } from "react-redux";
 import { selectSocket } from "../store/websocket/websocket.selectors";

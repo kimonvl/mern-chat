@@ -1,6 +1,5 @@
 import { useContext, useState, useRef, useEffect } from "react";
-import {useNavigate} from "react-router-dom"
-import { WebSocketContext } from "../context/WebsocketContext.context";
+import {useNavigate} from "react-router-dom";
 import SearchedUser from "./searched-user.component";
 import Contact from "./contact.component";
 import axios from "axios";
@@ -11,10 +10,11 @@ import { setUserId, setUsername } from "../store/user/user.actions";
 import React from "react";
 import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
 import { selectSocket } from "../store/websocket/websocket.selectors";
+import { wsDissconnect } from "../store/websocket/websocket.actions";
+import { selectUsersSearchResult } from "../store/users-search-result/users-search-result.selectors";
 
 const ContactsSection = () => {
-    // @ts-ignore
-    const {usersSearchResult, setSocket, setIsLoggedIn} = useContext(WebSocketContext);
+    const usersSearchResult = useSelector(selectUsersSearchResult);
     const socket = useSelector(selectSocket);
     const socketRef = useRef(socket);
     useEffect(() => {
@@ -67,16 +67,11 @@ const ContactsSection = () => {
 
     const logout = async () => {
         await axios.post('logout');
-        // @ts-ignore
-        socketRef.current.close();
-        // @ts-ignore
-        setSocket(null);
         dispatch(setUsername(null));
         dispatch(setUserId(null));
-        // @ts-ignore
         dispatch(setSelectedConversation({}));
         localStorage.clear();
-        setIsLoggedIn(false);
+        dispatch(wsDissconnect());
         navigate('/');
     }
 
@@ -113,7 +108,7 @@ const ContactsSection = () => {
             )}
 
             {/* Contacts (Aligned Left, Push Down when Dropdown is Open) */}
-            <div className={`contacts w-full ${isDropdownOpen ? 'mt-[250px]' : ''}`}>
+            <div className={`contacts w-full ${isDropdownOpen ? 'mt-[250px]' : ''} overflow-y-auto`}>
                 {
                     onlineConversations.online && onlineConversations.online.map((conv) => {
                         return (

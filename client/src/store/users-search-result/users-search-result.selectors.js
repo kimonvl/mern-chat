@@ -1,0 +1,1 @@
+export const selectUsersSearchResult = (state) => {return state.usersSearchResult.usersSearchResult;}

@@ -1,5 +1,6 @@
-import { setOnlineConversations, swapConversationToOnline, addMessageToConversation, swapConversationToOffline } from "../onilne-conversations/online-conversations.actions";
+import { setOnlineConversations, swapConversationToOnline, addMessageToConversation, swapConversationToOffline, addConversationToOnlines } from "../onilne-conversations/online-conversations.actions";
 import { setSelectedConversation } from "../selected-conversation/selected-conversation.actions";
+import { setUsersSearchResult } from "../users-search-result/users-search-result.actions";
 import WEBSOCKET_ACTION_TYPES from "./websocket.types";
 
 export const websocketMiddleware = (store) => (next) => (action) => {
@@ -25,17 +26,32 @@ export const websocketMiddleware = (store) => (next) => (action) => {
                         break;
                     case "full-conversation":
                         store.dispatch(setSelectedConversation(msg.data));
+                        break;
                     case "recieve-message":
                         store.dispatch(addMessageToConversation(msg.data));
+                        break;
+                    case "search-results":
+                        store.dispatch(setUsersSearchResult(msg.data));
+                        break;
+                    case "new-conversation":
+                        console.log("new convo recieved in websocket middleware", msg.data);
+                        store.dispatch(addConversationToOnlines(msg.data));
+                        break;
+                        
                     default:
                         break;
                 }
             }
             action.payload = socket;
             break;
-    
+        case WEBSOCKET_ACTION_TYPES.WS_DISSCONNECT:
+            if(socket){
+                console.log("closing socket in middleware");
+                socket.close();
+            }
+            break;
         default:
             break;
     }
-    return next(action);
+    next(action);
 }

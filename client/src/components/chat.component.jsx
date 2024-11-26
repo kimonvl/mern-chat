@@ -1,6 +1,5 @@
-import { useContext, useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import ContactsSection from "./contacts-section.component";
-import { WebSocketContext } from "../context/WebsocketContext.context";
 import MessageSentBubble from "./message-sent-bubble.component";
 import MessageReceivedBubble from "./message-recieved-bubble.component";
 import React from "react";
@@ -8,10 +7,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectUserId } from "../store/user/user.selectors";
 import { selectSelectedConversation } from "../store/selected-conversation/selected-conversation.selectors";
 import { setSelectedConversation } from "../store/selected-conversation/selected-conversation.actions";
-import { selectSocket } from "../store/websocket/websocket.selectors";
+import { selectIsLoggedIn, selectSocket } from "../store/websocket/websocket.selectors";
+import { wsConnect } from "../store/websocket/websocket.actions";
 const Chat = () => {
     const contextUserId = useSelector(selectUserId);
     const dispatch = useDispatch();
+
+    useEffect(() =>{
+        if(document.cookie.split('; ').some((cookie) => cookie.startsWith('token='))) {
+            dispatch(wsConnect());
+        }
+    }, []);
+
     useEffect(() => {
         const storedSelectedConversation = localStorage.getItem('selected-conversation');
         if(storedSelectedConversation){

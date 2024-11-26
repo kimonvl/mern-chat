@@ -20,3 +20,8 @@ export const addMessageToConversation = (message) => {
     return {type: ONLINE_CONVERSATIONS_ACTION_TYPES.ADD_MESSAGE_TO_CONVERSATION, payload: message};
 }
 
+export const addConversationToOnlines = (conversation) => {
+    console.log("online conv action add conversation", conversation);
+    return {type: ONLINE_CONVERSATIONS_ACTION_TYPES.ADD_CONVERSATION_TO_ONLINES, payload: conversation};
+}
+

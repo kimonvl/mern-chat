@@ -42,11 +42,11 @@ export const onlineConversationsMiddleware = (store) => (next) => (action) => {
                 if(foundOnline) {
                     foundOnline.unreadMessages += 1;
                     // @ts-ignore
-                    dispatch(setOnlineConversations({...currentOnlineConversations}));
+                    store.dispatch(setOnlineConversations({...currentOnlineConversations}));
                 }else if(foundOffline) {
                     foundOffline.unreadMessages += 1;
                     // @ts-ignore
-                    dispatch(setOnlineConversations({...currentOnlineConversations}));
+                    store.dispatch(setOnlineConversations({...currentOnlineConversations}));
                 }
             }
             break;}
@@ -64,6 +64,12 @@ export const onlineConversationsMiddleware = (store) => (next) => (action) => {
             });
             const newOfflineConvos = [...currentOnlineConversations.offline, ...convosToSwap];
             store.dispatch(setOnlineConversations({online: newOnlineConvos, offline: newOfflineConvos}));
+            break;}
+
+        case ONLINE_CONVERSATIONS_ACTION_TYPES.ADD_CONVERSATION_TO_ONLINES:
+            {const currentOnlineConversations = store.getState().onlineConversations.onlineConversations;
+            console.log("adding conv ", {online: [...currentOnlineConversations.online, action.payload], offline: [...currentOnlineConversations.offline]});
+            store.dispatch(setOnlineConversations({online: [...currentOnlineConversations.online, action.payload], offline: [...currentOnlineConversations.offline]}))
             break;}
             
         default:

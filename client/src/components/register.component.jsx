@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useContext, useState } from "react";
-import { WebSocketContext } from "../context/WebsocketContext.context";
 import React from "react";
 import { useDispatch } from "react-redux";
 import { setUserId, setUsername as setUsernameStore } from "../store/user/user.actions";
@@ -11,8 +10,6 @@ const Register = () => {
     const [email, setEmail] = useState('');
 
     const dispatch = useDispatch();
-    // @ts-ignore
-    const {setIsLoggedIn} = useContext(WebSocketContext);
 
     const changePasswordHandler = (e) =>{
         setPassword(e.target.value);
@@ -32,7 +29,6 @@ const Register = () => {
         if(data){
             dispatch(setUserId(data.id));
             dispatch(setUsernameStore(username));
-            setIsLoggedIn(true);
         }else {
             alert("Could not create account");
         }
